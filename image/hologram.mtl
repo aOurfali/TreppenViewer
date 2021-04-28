@@ -1,0 +1,35 @@
+# MTL-Datei -- das Format muss noch geprüft werden 
+newmtl mtl_1
+Ka 0.651 0.651 0.651
+Kd 0.651 0.651 0.651
+Ks 0.651 0.651 0.651
+d 1.000
+illum 0
+newmtl mtl_2
+Ka 1.000 1.000 1.000
+Kd 1.000 1.000 1.000
+Ks 1.000 1.000 1.000
+d 1.000
+illum 0
+newmtl b70dbfbd-88cd-4892-ac88-3db03a1e9085
+map_Kd b70dbfbd-88cd-4892-ac88-3db03a1e9085.jpg
+newmtl mtl_4
+Ka 0.588 0.588 0.588
+Kd 0.588 0.588 0.588
+Ks 0.588 0.588 0.588
+d 1.000
+illum 0
+newmtl mtl_5
+Ka 0.863 0.863 0.863
+Kd 0.863 0.863 0.863
+Ks 0.863 0.863 0.863
+d 1.000
+illum 0
+newmtl ef0b0230-a260-4173-b811-9fb9827d6c76
+map_Kd ef0b0230-a260-4173-b811-9fb9827d6c76.jpg
+newmtl mtl_7
+Ka 0.314 0.396 0.392
+Kd 0.314 0.396 0.392
+Ks 0.314 0.396 0.392
+d 1.000
+illum 0
