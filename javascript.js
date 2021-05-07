@@ -5,24 +5,36 @@ import {MTLLoader} from 'https://threejsfundamentals.org/threejs/resources/three
 
 function main() {
   const canvas = document.getElementById('webgl');
-  //const renderer = new THREE.CanvasRenderer(({canvas,antialias: true}));
   const renderer = new THREE.WebGLRenderer({canvas,antialias: true});
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
+  
   var objs=[];
-  /*const fov = 45;
-  const aspect = 2;  // the canvas default
-  const near = 0.1;
-  const far = 100000000000000;
-  const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
-*/
-  //const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight);
- //var camera = new THREE.OrthographicCamera(0, window.innerWidth, -window.innerHeight, 0, -100, 100);
-  var camera =  new THREE.OrthographicCamera(window.innerWidth / -1, window.innerWidth /4, window.innerHeight / 2, window.innerHeight / -3, -1000, 10000);
-  camera.position.set(0, 1, 20);
+  var intscs = [];
+  var tempvertex = new THREE.Vector3();
+  var poi = new THREE.Vector3();
+  var pos = new THREE.Vector3();
+  var tp = [
+  new THREE.Vector3(), 
+  new THREE.Vector3(),
+  new THREE.Vector3()
+  ];
+  var tri = new THREE.Triangle();
+  var bc = new THREE.Vector3();
+  var idx = 0;
+  
+  const material= new THREE.MeshNormalMaterial()
+
+  const coneGeometry = new THREE.ConeGeometry(5, 10,100);
+
+  
+  const camera = new THREE.PerspectiveCamera(100, window.innerWidth/window.innerHeight);
+  camera.position.setScalar(10);
+  camera.position.set(5, 5, 20);
+  camera.lookAt(0,5,0);
 
   const controls = new OrbitControls(camera, canvas);
-  controls.target.set(0, 5, 0);
+  controls.target.set(5, 10, 5);
   controls.update();
 
   const scene = new THREE.Scene();
@@ -32,24 +44,7 @@ function main() {
   const light = new THREE.AmbientLight(color, 1);
   scene.add(light);
 
-  /*{
-    const skyColor = 0xB1E1FF;  // light blue
-    const groundColor = 0xB97A20;  // brownish orange
-    const intensity = 1;
-    const light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
-    scene.add(light);
-  }
-
-  {
-    const color = 0xFFFFFF;
-    const intensity = 1;
-    const light = new THREE.DirectionalLight(color, intensity);
-   // light.position.set(5, 10, 2);
-   light.position.set(0,1,2);
-    scene.add(light);
-    scene.add(light.target);
-  }*/
-
+  // Laden von OBJ-Datei
   {
     const mtlLoader = new MTLLoader();
     mtlLoader.load('/image/hologram.mtl', (mtl) => {
@@ -57,48 +52,74 @@ function main() {
       const objLoader = new OBJLoader();
       objLoader.setMaterials(mtl);
       objLoader.load('/image/hologram.obj', (root) => {
-        scene.add(root);
+        root.traverse( function ( child ) {
+
+          if ( child.isMesh ) {
+            var wireframeGeomtry = new THREE.WireframeGeometry( child.geometry );
+            var wireframeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff } );
+            var wireframe = new THREE.LineSegments( wireframeGeomtry, wireframeMaterial );
+            objs.push(child);
+            child.add(wireframe);
+            scene.add(child);
+          }
+        } );
       });
     });
   }
 
-  /*function objects() 
-  {
-    const mtlLoader = new MTLLoader();
-    mtlLoader.load('/image/hologram.mtl', function(mtl) {
-      var material = new THREE.MeshBasicMaterial();
-      var mesh = new THREE.Mesh(mtl, material);
-      mesh.rotation.set(0, Math.PI, 0);
-      mesh.scale.setScalar(10);
-      scene.add(mesh);
-      objs.push(mesh);
-      //var wireframe = new THREE.LineSegments(new THREE.WireframeGeometry(mtl), new THREE.LineBasicMaterial({color: "aqua"}));
-     // mesh.add(new THREE.LineSegments(new THREE.WireframeGeometry(mtl), new THREE.LineBasicMaterial({color: "aqua"})));
-      mtl.preload();
-      const objLoader = new OBJLoader();
-      objLoader.setMaterials(mtl);
-      objLoader.load('/image/hologram.obj', (root) => {
-        scene.add(root);
-      });
-    });
+  function raycast ( e ) {
 
-  }*/
-
-
+      mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+      mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+      var marker2 = new THREE.Mesh(new THREE.SphereBufferGeometry(2,5, 50, 50), new THREE.MeshBasicMaterial({color: 0x000000})); 
+      raycaster.setFromCamera( mouse, camera );    
+      var intersects = raycaster.intersectObjects( objs, true );
+      if (intersects.length > 0){
+        console.log( intersects[0].face ); 
+          let n = new THREE.Vector3();
+          n.copy(intersects[0].face.normal);
+          n.transformDirection(intersects[0].object.matrixWorld);
+          marker2.rotateX(Math.PI / 2)
+          marker2.position.copy(intersects[0].point);
+          marker2.position.addScaledVector(n, 0.1);
+          scene.add(marker2);
+        }
   
-  function onMouseMove(event){
-    event.preventDefault();
-    
-    mouse.x = ( event.clientX / renderer.domElement.clientWidth ) * 2 - 1;
-    mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
-    
-    raycaster.setFromCamera( mouse, camera );
-    
-    var intersects = 0;//raycaster.intersectObjects( objects);
-    if (intersects.length > 0)
-        return intersects[0].point;
   }
-  
+  var marker = new THREE.Mesh(new THREE.SphereBufferGeometry(2,5, 50, 50), new THREE.MeshBasicMaterial({color: 0xFF5555}));
+  scene.add(marker);
+  renderer.domElement.addEventListener("mousemove", onMouseMove);
+  function onMouseMove(event) {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    intscs = raycaster.intersectObjects(objs);
+    if (intscs.length > 0) {
+      let o = intscs[0];
+      poi.copy(o.point);
+      o.object.worldToLocal(poi);
+      setPos(o.faceIndex);
+      o.object.localToWorld(pos);
+      marker.position.copy(pos);
+    }
+  }
+
+  function setPos(faceIndex) {
+    tp[0].fromBufferAttribute(intscs[0].object.geometry.attributes.position, faceIndex * 3 + 0);
+    tp[1].fromBufferAttribute(intscs[0].object.geometry.attributes.position, faceIndex * 3 + 1);
+    tp[2].fromBufferAttribute(intscs[0].object.geometry.attributes.position, faceIndex * 3 + 2);
+    tri.set(tp[0], tp[1], tp[2]);
+    tri.getBarycoord(poi, bc);
+    if (bc.x > bc.y && bc.x > bc.z) {
+      idx = 0;
+    } else if (bc.y > bc.x && bc.y > bc.z) {
+      idx = 1;
+    } else if (bc.z > bc.x && bc.z > bc.y) {
+      idx = 2;
+    }
+    pos.copy(tp[idx]);
+  }
+
   function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
     const width = canvas.clientWidth;
@@ -117,14 +138,20 @@ function main() {
       camera.aspect = canvas.clientWidth / canvas.clientHeight;
       camera.updateProjectionMatrix();
     }
-
     renderer.render(scene, camera);
 
     requestAnimationFrame(render);
   }
 
-  addEventListener('mousemove',onMouseMove);
+  document.addEventListener('click', raycast );
+
   requestAnimationFrame(render);
+
+  window.addEventListener('resize', ()=>{
+    camera.aspect= window.innerWidth/window.innerHeight/2 ;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  })
 }
 
-main();
+main(); 
