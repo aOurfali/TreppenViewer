@@ -12,29 +12,15 @@ function main() {
   const mouse = new THREE.Vector2();
   
   var objs=[];
-  var tempvertex = new THREE.Vector3();
-  var poi = new THREE.Vector3();
-  var pos = new THREE.Vector3();
-  var tp = [
-  new THREE.Vector3(), 
-  new THREE.Vector3(),
-  new THREE.Vector3()
-  ];
-  var tri = new THREE.Triangle();
-  var bc = new THREE.Vector3();
-  var idx = 0;
-  
-const material= new THREE.MeshNormalMaterial()
-
-const coneGeometry = new THREE.ConeGeometry(.05, .2, 8);
+  var pointits = new THREE.Vector3();
 
   
-  const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight);
- //var camera = new THREE.OrthographicCamera(0, window.innerWidth, -window.innerHeight, 0, -100, 100);
-  //var camera =  new THREE.OrthographicCamera(window.innerWidth / -1, window.innerWidth /4, window.innerHeight / 2, window.innerHeight / -3, -1000, 10000);
-  camera.position.setScalar(10);
-  camera.position.set(0.5, 0.5, 2);
-  camera.lookAt(0,0,0);
+  const camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.1, 1000 );
+  camera.position.z = 5;
+
+  //camera.position.setScalar(10);
+  //camera.position.set(0.5, 0.5, 2);
+  
 
   const controls = new OrbitControls(camera, canvas);
   controls.target.set(0, 5, 0);
@@ -48,27 +34,18 @@ const coneGeometry = new THREE.ConeGeometry(.05, .2, 8);
   scene.add(light);
 
   // richtige Laden von OBJ-Datei
-  {
-    const mtlLoader = new MTLLoader();
-    mtlLoader.load('/image/hologram.mtl', (mtl) => {
-      mtl.preload();
-      const objLoader = new OBJLoader();
-      objLoader.setMaterials(mtl);
-      objLoader.load('/image/hologram.obj', (root) => {
-        root.traverse( function ( child ) {
+  const geometry = new THREE.BoxGeometry(5,5,5);
+  const material = new THREE.MeshBasicMaterial({ color: 0xff0000 } );
+  const cube = new THREE.Mesh( geometry, material );
 
-          if ( child.isMesh ) {
-            var wireframeGeomtry = new THREE.WireframeGeometry( child.geometry );
-            var wireframeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff } );
-            var wireframe = new THREE.LineSegments( wireframeGeomtry, wireframeMaterial );
-            objs.push(child);
-            child.add(wireframe);
-            scene.add(child);
-          }
-        } );
-      });
-    });
-  }
+  var wireframeGeomtry = new THREE.WireframeGeometry( geometry );
+  var wireframeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff } );
+  var wireframe = new THREE.LineSegments( wireframeGeomtry, wireframeMaterial );         
+  cube.add(wireframe);
+  objs.push(cube); 
+  //scene.add(child);
+
+  scene.add( cube );
 
   //marker setzen
   var pointA = undefined
@@ -87,14 +64,13 @@ function raycast ( e ) {
 
       raycaster.setFromCamera( mouse, camera );    
       var intersects = raycaster.intersectObjects( objs, false );
-
       if((distance > 0)&& (anzahlmarker===2)){
         pointA= undefined
         pointB= undefined
         distance=0; anzahlmarker=0;
         scene.remove(markerA);
         scene.remove(markerB);
-        
+       //scene.remove(marker); 
       }
       if (intersects.length > 0){
         console.log( intersects[0].face ); 
@@ -114,22 +90,10 @@ function raycast ( e ) {
           anzahlmarker++;
           console.log("Distance between 2 point ist:" + distance);
         }
-          /*
-              An intersection has the following properties :
-                  - object : intersected object (THREE.Mesh)
-                  - distance : distance from camera to intersection (number)
-                  - face : intersected face (THREE.Face3)
-                  - faceIndex : intersected face index (number)
-                  - point : intersection point (THREE.Vector3)
-                  - uv : intersection point in the object's UV coordinates (THREE.Vector2)
-          */
-        // raycasterp.object.localToWorld(tempvertex );
-        // marker.position.copy(tempvertex);
-
     }
   
   }
-  
+
   function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
     const width = canvas.clientWidth;
@@ -152,7 +116,6 @@ function raycast ( e ) {
 
     requestAnimationFrame(render);
   }
-
   document.addEventListener('click', raycast );
 
   requestAnimationFrame(render);

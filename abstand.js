@@ -22,10 +22,8 @@ loader.load('https://threejs.org/examples/models/stl/ascii/slotted_disk.stl', fu
   mesh.scale.setScalar(10);
   scene.add(mesh);
   objs.push(mesh);
-  
   var wireframe = new THREE.LineSegments(new THREE.WireframeGeometry(geometry), new THREE.LineBasicMaterial({color: "aqua"}));
   mesh.add(wireframe);
-
 });
 
 //load von OBj datei.
