@@ -4,7 +4,7 @@ import {OBJLoader} from 'https://threejsfundamentals.org/threejs/resources/three
 import {MTLLoader} from 'https://threejsfundamentals.org/threejs/resources/threejs/r127/examples/jsm/loaders/MTLLoader.js';
 //import {Detector} from 'https://dl.dropboxusercontent.com/s/ddt89ncslm4o7ie/Detector.js'
 //import {TGALoader} from 'https://dl.dropboxusercontent.com/s/n5sjyymajykna51/TGALoader.js'
-
+//import Stats from './jsm/libs/stats.module.js';
 function main() {
   const canvas = document.getElementById('webgl');
   const renderer = new THREE.WebGLRenderer({canvas,antialias: true});
@@ -12,7 +12,6 @@ function main() {
   const mouse = new THREE.Vector2();
   
   var objs=[];
-  var tempvertex = new THREE.Vector3();
   var poi = new THREE.Vector3();
   var pos = new THREE.Vector3();
   var tp = [
@@ -24,12 +23,10 @@ function main() {
   var bc = new THREE.Vector3();
   var idx = 0;
   
-const material= new THREE.MeshNormalMaterial()
+
 
 const coneGeometry = new THREE.ConeGeometry(.05, .2, 8);
-
-  
-  const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight);
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight);
  //var camera = new THREE.OrthographicCamera(0, window.innerWidth, -window.innerHeight, 0, -100, 100);
   //var camera =  new THREE.OrthographicCamera(window.innerWidth / -1, window.innerWidth /4, window.innerHeight / 2, window.innerHeight / -3, -1000, 10000);
   camera.position.setScalar(10);
@@ -47,38 +44,113 @@ const coneGeometry = new THREE.ConeGeometry(.05, .2, 8);
   const light = new THREE.AmbientLight(color, 1);
   scene.add(light);
 
-  // richtige Laden von OBJ-Datei
-  {
+  
+  //OBJ-Datei nach Gruppen Laden
+ /*{
     const mtlLoader = new MTLLoader();
-    mtlLoader.load('/image/hologram.mtl', (mtl) => {
+    mtlLoader.load('/image/untitled (1).mtl', (mtl) => {
       mtl.preload();
       const objLoader = new OBJLoader();
       objLoader.setMaterials(mtl);
-      objLoader.load('/image/hologram.obj', (root) => {
+      objLoader.load('/image/untitled (1).obj',function ( object ) {
+
+        scene.add( object );
+        objs.push[object];
+      });
+    });
+  }*/
+
+  /*{
+      const objLoader = new OBJLoader();
+      objLoader.load('/image/output.obj', (root) => {
+        
         root.traverse( function ( child ) {
 
           if ( child.isMesh ) {
             var wireframeGeomtry = new THREE.WireframeGeometry( child.geometry );
             var wireframeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff } );
             var wireframe = new THREE.LineSegments( wireframeGeomtry, wireframeMaterial );
-            objs.push(child);
+            objs.push(child); 
+            child.add(wireframe);
+            scene.add(child);
+          }
+        } );
+      });
+  }*/
+  {
+    const mtlLoader = new MTLLoader();
+    mtlLoader.load('/image/untitled (1).mtl', (mtl) => {
+      mtl.preload();
+      const objLoader = new OBJLoader();
+      objLoader.setMaterials(mtl);
+      objLoader.load('/image/untitled (1).obj', (root) => {
+        
+        root.traverse( function ( child ) {
+
+          if ( child.isMesh ) {
+            var wireframeGeomtry = new THREE.WireframeGeometry( child.geometry );
+            var wireframeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff } );
+            var wireframe = new THREE.LineSegments( wireframeGeomtry, wireframeMaterial );
+            objs.push(child); 
+            child.add(wireframe);
+          }
+        } );
+        scene.add(root);
+      });
+    });
+  }
+  // richtige Laden von OBJ-Datei
+  /*{
+    const mtlLoader = new MTLLoader();
+    mtlLoader.load('/image/untitled (1).mtl', (mtl) => {
+      mtl.preload();
+      const objLoader = new OBJLoader();
+      objLoader.setMaterials(mtl);
+      objLoader.load('/image/untitled (1).obj', (root) => {
+        
+        root.traverse( function ( child ) {
+
+          if ( child.isMesh ) {
+            var wireframeGeomtry = new THREE.WireframeGeometry( child.geometry );
+            var wireframeMaterial = new THREE.LineBasicMaterial( { color: 0xffffff } );
+            var wireframe = new THREE.LineSegments( wireframeGeomtry, wireframeMaterial );
+            objs.push(child); 
             child.add(wireframe);
             scene.add(child);
           }
         } );
       });
     });
-  }
+  }*/
 
+  /*var marker = new THREE.Mesh(new THREE.SphereBufferGeometry(2,5, 50, 50), new THREE.MeshBasicMaterial({
+    color: 0x000000
+   })); 
+   scene.add(marker);*/
+    var intersects;
+
+    function onMouseClickFace(event) {
+    mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    
+    raycaster.setFromCamera( mouse, camera );    
+    var intersects = raycaster.intersectObjects(objs, false );
+    if(intersects.length>0){
+      console.log("function onMouseMove");
+      let o = intersects[0];
+      //indexits = o.object.clone();
+      o.object.visible = false;
+    }
+  }
   //marker setzen
   var pointA = undefined
   var pointB = undefined
   var distance =0;
   var anzahlmarker = 0;
-  var markerA = new THREE.Mesh(new THREE.SphereBufferGeometry(0.1, 16, 16), new THREE.MeshBasicMaterial({
+  var markerA = new THREE.Mesh(new THREE.SphereBufferGeometry(4, 16, 16), new THREE.MeshBasicMaterial({
     color: 0xFF5555
    })); 
-   var markerB = markerA.clone();
+  var markerB = markerA.clone();
 
 function raycast ( e ) {
 
@@ -129,6 +201,45 @@ function raycast ( e ) {
     }
   
   }
+  var marker = new THREE.Mesh(new THREE.SphereBufferGeometry(2,5, 50, 50), new THREE.MeshBasicMaterial({
+    color: 0x000000
+   })); 
+  // scene.add(marker);
+   var intersects = [];
+
+  function onMouseMove(e){
+    
+    mouse.x = ( e.clientX / window.innerWidth ) * 2 - 1;
+    mouse.y = - ( e.clientY / window.innerHeight ) * 2 + 1;
+
+    raycaster.setFromCamera( mouse, camera );    
+    intersects = raycaster.intersectObjects( objs, false );
+    if(intersects.length>0){
+      console.log("function onMouseMove");
+      let o = intersects[0];
+      poi.copy(o.point);
+      o.object.worldToLocal(poi);
+      setPos(o.faceIndex);
+      o.object.localToWorld(pos);
+      marker.position.copy(pos);
+      //scene.add(marker);
+    }
+  }
+  function setPos(faceIndex) {
+    tp[0].fromBufferAttribute(intersects[0].object.geometry.attributes.position, faceIndex * 3 + 0);
+    tp[1].fromBufferAttribute(intersects[0].object.geometry.attributes.position, faceIndex * 3 + 1);
+    tp[2].fromBufferAttribute(intersects[0].object.geometry.attributes.position, faceIndex * 3 + 2);
+    tri.set(tp[0], tp[1], tp[2]);
+     tri.getBarycoord(poi, bc);
+    if (bc.x > bc.y && bc.x > bc.z) {
+      idx = 0;
+    } else if (bc.y > bc.x && bc.y > bc.z) {
+      idx = 1;
+    } else if (bc.z > bc.x && bc.z > bc.y) {
+      idx = 2;
+    }
+    pos.copy(tp[idx]);
+  }
   
   function resizeRendererToDisplaySize(renderer) {
     const canvas = renderer.domElement;
@@ -153,8 +264,9 @@ function raycast ( e ) {
     requestAnimationFrame(render);
   }
 
-  document.addEventListener('click', raycast );
-
+  //document.addEventListener('click', raycast );
+  //document.addEventListener('mousemove',onMouseMove);
+  document.addEventListener('click',onMouseClickFace);
   requestAnimationFrame(render);
  // diese Funktion erlaubt mir die seite responsiv zu machen
   window.addEventListener('resize', ()=>{

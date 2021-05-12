@@ -1,5 +1,7 @@
 # Compass Software GmbH OBJ-Datei
-mtllib hologram.mtl
+//mtllib hologram.mtl
+g GF_E_PLANTRM_MV 
+o object_1
 # Anzahl Eckpunkte 15564
 v -104.100000 -350.000000 279.990000
 v 454.329126 -350.000000 279.990000
